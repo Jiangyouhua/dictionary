@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>编辑语法目录</title>
+</head>
+
+<body>
+    <table>
+        <thead id="thead">
+            <tr>
+                <td>Index</td>
+                <td>Title</td>
+                <td>Info</td>
+                <td>Edit</td>
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+
+</body>
+
+</html>
+<script src="/html/index.js"></script>
+<script>
+    function initTable() {
+        let data = await postData(host + "?handle=catalogue")
+        if (!data) {
+            return
+        }
+        data.array.forEach(element => {
+
+        });
+    }
+
+</script>
