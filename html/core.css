@@ -1,0 +1,70 @@
+html{
+    margin: 0;
+    padding: 0;
+}
+form, .index, .edit, thead td{
+    text-align: center;
+}
+form {
+    width: 100%;
+}
+form>*{
+    width: 98%;
+    margin: 5px 0;
+}
+form>div{
+    display: inline-block;
+    text-align: left;
+    width: 99%;
+}
+
+form>div>input{
+    width: 49.5%;
+}
+
+form>div>input:last-child{
+    float: right;
+}
+
+table {
+    border-collapse:collapse;
+    width: 98%;
+    margin: 0 1%;
+}
+thead>tr{
+    border-top: 1px rgb(179, 179, 179) solid;
+    border-bottom: 1px rgb(179, 179, 179) dashed;
+}
+tbody>tr{
+    border-bottom: 1px rgb(179, 179, 179) dashed;
+} 
+
+tbody>tr:hover {
+    background-color: yellow;
+}
+
+td {
+    padding: 5px;
+}
+
+tr.active{
+    background-color: yellow;
+}
+
+button.active{
+    background-color: tomato;
+    border: rgb(255, 0, 0) 1px solid;
+    border-radius: 2px;
+}
+
+table tbody {
+    display:block;
+    height:620px;
+    overflow-y:scroll;
+}
+
+table thead, tbody tr {
+    display:table;
+    width:100%;
+    table-layout:fixed;
+}

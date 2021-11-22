@@ -4,36 +4,198 @@
 <head>
     <meta charset="UTF-8">
     <title>编辑语法目录</title>
+    <link href="core.css" rel="stylesheet">
+    <style>
+        .title {
+            width: 50%;
+        }
+
+        .edit {
+            width: 30%;
+        }
+    </style>
 </head>
 
 <body>
+    <form>
+        <input type="hidden" name="id" value="0">
+        <input type="hidden" name="parent_id" value="0">
+        <input type="text" name="title" placeholder="Book title">
+        <input type="text" name="info" placeholder="Number of words in the book">
+        <input type="text" name="seat" placeholder="Book seat">
+        <input type="hidden" name="state" placeholder="Book state">
+        <div>
+            <input type="reset" value="Reset" onclick="reset()"><input type="button" value="Submit"
+                onclick="submitItem()">
+        </div>
+    </form>
+    <br>
     <table>
-        <thead id="thead">
+        <thead>
             <tr>
-                <td>Index</td>
-                <td>Title</td>
-                <td>Info</td>
-                <td>Edit</td>
+                <td class="index">Index</td>
+                <td class="title">title</td>
+                <td class="info">Info</td>
+                <td class="seat">Seat</td>
+                <td class="edit">Edit</td>
             </tr>
         </thead>
-        <tbody>
+        <tbody id="tbody">
 
         </tbody>
     </table>
-
 </body>
 
 </html>
-<script src="/html/index.js"></script>
+<script src="core.js"></script>
 <script>
-    function initTable() {
-        let data = await postData(host + "?handle=catalogue")
-        if (!data) {
-            return
-        }
-        data.array.forEach(element => {
+    let sort = 0
+    var tr = document.createElement("div")
+    var btn = document.createElement("button")
 
-        });
+    window.onload = function () {
+        bookData()
     }
 
+    function bookData() {
+        net.post("fetchBook", { state: "1" }).then(response => {
+            formatTable(response)
+        })
+    }
+
+    function formatTable(response) {
+        if (!response) {
+            return
+        }
+        if (!!response.Code) {
+            alert(response.Message)
+        }
+        let data = response.Data
+        thead = document.getElementById("tbody")
+        thead.innerHTML = ""
+        for (let i = 0; i < data.length; i++) {
+            let item = data[i]
+            let tr = document.createElement("tr")
+            tr.id = "row" + i
+            let index = document.createElement("td")
+            index.className = "index"
+            index.innerText = i
+            tr.append(index)
+            let title = document.createElement("td")
+            title.className = "title"
+            let level = new Array(item.level * 1 + 1).join("--")
+            title.innerText = `${level} ${item.title}`
+            tr.append(title)
+            let info = document.createElement("td")
+            info.className = "info"
+            info.innerText = item.info
+            tr.append(info)
+            let seat = document.createElement("td")
+            seat.className = "seat"
+            seat.innerText = item.seat
+            tr.append(seat)
+            let edit = document.createElement("td")
+            edit.className = "edit"
+            tr.append(edit)
+            let pid = item.parent_id.length == 0 ? 0 : item.parent_id
+            // let brother = document.createElement("button")
+            // brother.innerText = "添加同级"
+            // brother.setAttribute("onclick", `editItem(this, ${pid}, 0, ${i})`)
+            // edit.append(brother)
+            // edit.append(document.createTextNode(" "))
+            // let son = document.createElement("button")
+            // son.innerText = "添加子级"
+            // son.setAttribute("onclick", `editItem(this, ${item.id}, 0, ${i})`)
+            // edit.append(son)
+            // edit.append(document.createTextNode(" "))
+            let it = document.createElement("button")
+            it.innerText = "修改本项"
+            it.setAttribute("onclick", `editItem(this, ${pid}, ${item.id}, ${i})`)
+            edit.append(it)
+            edit.append(document.createTextNode(" "))
+            let hidden = document.createElement("button")
+            hidden.innerText = "隐藏本项"
+            hidden.setAttribute("onclick", `hideSelf(this, ${pid}, ${item.id}, ${i})`)
+            edit.append(hidden)
+            edit.append(document.createTextNode(" "))
+            let sort = document.createElement("button")
+            sort.innerText = "点击排序"
+            sort.setAttribute("onclick", `autoSeat(this, ${pid}, ${item.id}, ${i})`)
+            edit.append(sort)
+            thead.append(tr)
+        }
+    }
+
+    function editItem(it, parent_id, id, index) {
+        tr.className = ""
+        btn.className = ""
+        tr = document.getElementById("row" + index)
+        btn = it
+        if (!!tr) {
+            tr.className = "active"
+        }
+        if (!!btn) {
+            btn.className = "active"
+        }
+        document.getElementsByName("parent_id")[0].value = parent_id
+        document.getElementsByName("id")[0].value = id
+
+        // 修改。
+        if (id > 0) {
+            document.getElementsByName("title")[0].value = tr.querySelector(".title").innerText.replaceAll("-", "")
+            document.getElementsByName("info")[0].value = tr.querySelector(".info").innerText
+            sort = tr.querySelector(".seat").innerText
+            document.getElementsByName("seat")[0].value = sort
+        }
+    }
+
+    function autoSeat(it, parent_id, id, index) {
+        if (id <= 0) {
+            return
+        }
+        sort++
+        tr = document.getElementById("row" + index)
+        document.getElementsByName("parent_id")[0].value = parent_id
+        document.getElementsByName("id")[0].value = id
+        document.getElementsByName("title")[0].value = tr.querySelector(".title").innerText.replaceAll("-", "")
+        document.getElementsByName("info")[0].value = tr.querySelector(".info").innerText
+        document.getElementsByName("seat")[0].value = sort
+        document.getElementsByName("state")[0].value = 1
+        console.log(sort)
+        submitItem(false)
+    }
+
+    function hideSelf(it, parent_id, id, index) {
+        if (id <= 0) {
+            return
+        }
+        sort++
+        tr = document.getElementById("row" + index)
+        document.getElementsByName("parent_id")[0].value = parent_id
+        document.getElementsByName("id")[0].value = id
+        document.getElementsByName("title")[0].value = tr.querySelector(".title").innerText.replaceAll("-", "")
+        document.getElementsByName("info")[0].value = tr.querySelector(".info").innerText
+        document.getElementsByName("seat")[0].value = tr.querySelector(".seat").innerText
+        document.getElementsByName("state")[0].value = 0
+        console.log(sort)
+        submitItem(false)
+    }
+
+    function submitItem(isReset = true) {
+        let form = document.querySelector("form")
+        let data = new FormData(form)
+        net.post("editBook", data).then(response => {
+            if (!response) {
+                return
+            }
+            if (!!response.Code) {
+                alert(response.Message)
+                return
+            }
+            if (isReset) {
+                form.reset()
+            }
+            bookData()
+        })
+    }
 </script>

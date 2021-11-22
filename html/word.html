@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>编辑书本</title>
+    <link href="core.css" rel="stylesheet">
+    <style>
+        .index,
+        .edit {
+            width: 50px;
+        }
+    </style>
+</head>
+
+<body>
+    <form>
+        <input type="hidden" title="id" value="0">
+        <input type="text" title="title" placeholder="Book Name">
+        <input type="text" title="info" placeholder="Book Name">
+        <div>
+            <input type="reset" value="Reset"><input type="button" value="Submit" onclick="submitItem()">
+        </div>
+    </form>
+    <br>
+    <table>
+        <thead>
+            <tr>
+                <td class="index">Index</td>
+                <td class="title">Title</td>
+                <td class="Syllable">Syllable</td>
+                <td class="uk">UK</td>
+                <td class="us">US</td>
+                <td class="Info">Info</td>
+                <td class="edit">Edit</td>
+            </tr>
+        </thead>
+        <tbody id="tbody">
+
+        </tbody>
+    </table>
+</body>
+
+</html>
+<script src="core.js"></script>
+<script>
+    var tr = document.createElement("div")
+    var btn = document.createElement("button")
+
+    window.onload = function () {
+        wordAll()
+    }
+
+    function wordAll() {
+        net.post("fetchWord").then(response => {
+            formatTable(response)
+        })
+    }
+
+    function formatTable(response) {
+        if (!response) {
+            return
+        }
+        if (!!response.Code) {
+            alert(response.Message)
+        }
+        let data = response.Data
+        thead = document.getElementById("tbody")
+        thead.innerHTML = ""
+        for (let i = 0; i < data.length; i++) {
+            let item = data[i]
+            let tr = document.createElement("tr")
+            tr.id = "row" + i
+            let index = document.createElement("td")
+            index.className = "index"
+            index.innerText = i
+            tr.append(index)
+            let title = document.createElement("td")
+            title.className = "title"
+            title.innerText = item.title
+            tr.append(title)
+            let syllable = document.createElement("td")
+            syllable.className = "syllable"
+            syllable.innerText = item.syllable
+            tr.append(syllable)
+            let uk = document.createElement("td")
+            uk.className = "uk"
+            uk.innerText = item.uk
+            tr.append(uk)
+            let us = document.createElement("td")
+            us.className = "us"
+            us.innerText = item.us
+            tr.append(us)
+            let info = document.createElement("td")
+            info.className = "info"
+            info.innerText = item.info
+            tr.append(info)
+            let edit = document.createElement("td")
+            edit.className = "edit"
+            tr.append(edit)
+            edit.append(document.createTextNode(" "))
+            let it = document.createElement("button")
+            it.innerText = "修改本项"
+            it.setAttribute("onclick", `editItem(this, ${item.ParentId}, ${item.Id}, ${i})`)
+            edit.append(it)
+            thead.append(tr)
+        }
+    }
+
+    function editItem(it, parentId, id, index) {
+        tr.className = ""
+        btn.className = ""
+        tr = document.getElementById("row" + index)
+        btn = it
+        if (!!tr) {
+            tr.className = "active"
+        }
+        if (!!btn) {
+            btn.className = "active"
+        }
+        document.getElementsByName("parentId")[0].value = parentId
+        document.getElementsByName("id")[0].value = id
+
+        // 修改。
+        if (id > 0) {
+            document.getElementsByName("title")[0].value = tr.querySelector(".title").innerText.replaceAll("-", "")
+            document.getElementsByName("info")[0].value = tr.querySelector(".info").innerText
+        }
+    }
+
+    function submitItem() {
+        let form = document.querySelector("form")
+        let data = new FormData(form)
+        net.post("catalogueInsertOrUpate", data).then(response => {
+            if (!response) {
+                return
+            }
+            if (!!response.Code) {
+                alert(response.Message)
+                return
+            }
+            form.reset()
+            acatalogueAll()
+        })
+    }
+</script>

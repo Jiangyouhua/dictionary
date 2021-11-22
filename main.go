@@ -1,13 +1,34 @@
 package main
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"words/model"
+	"words/work"
 )
 
 func main() {
-	http.HandleFunc("handle", handle)
-	http.Handle("/", http.FileServer(http.Dir("./")))
+	// service()
+	format()
+}
+
+func format() {
+	p, err := model.NewPool(true)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// work.BookClassification(p, "book")
+	// work.WordSupplement(p, "csv")
+	// work.WordSupplement(p, "txt")
+	work.InfoSupplement(p, "csv")
+	// work.SyllableToDatabase(p)
+}
+
+func service() {
+	http.HandleFunc("/router", handle)
+	http.Handle("/", http.FileServer(http.Dir("./html/")))
 	if err := http.ListenAndServe(":80", nil); err != nil {
 		log.Fatal(err)
 	}
@@ -15,4 +36,21 @@ func main() {
 
 func handle(w http.ResponseWriter, r *http.Request) {
 
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("%s", body)
+
+	var m map[string]string
+	json.Unmarshal([]byte(body), &m)
+
+	h := m["handle"]
+	delete(m, "handle")
+	if len(h) == 0 {
+		http.NotFound(w, r)
+		return
+	}
+	b := model.Routing(h, m)
+	w.Write(b)
 }
