@@ -66,6 +66,11 @@ func (p *Pool) EditWord(data map[string]string) (interface{}, error) {
 	return p.edit("word", data)
 }
 
+func (p *Pool) UpdateBookLinkWord(title, key, value string) (sql.Result, error) {
+	query := fmt.Sprintf("UPDATE temp SET `%s`=`%s`+%s WHERE `title`='%s'", key, key, value, title)
+	return p.db.Exec(query)
+}
+
 func (p *Pool) InsertOrUpdate(table string, data []map[string]string, insertColumns []string, updateColumns []string) (sql.Result, error) {
 	var (
 		values   = make([]string, 0, len(data))

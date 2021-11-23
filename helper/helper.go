@@ -22,11 +22,9 @@ func Camel2Case(name string) string {
 }
 
 func Translate(s string) string {
+	s = strings.TrimSpace(s)
+	s = strings.Replace(s, "\uFEFF", "", -1)
 	s = strings.ReplaceAll(s, "'", `\'`)
 	s = strings.ReplaceAll(s, `\\'`, `\'`)
-	// s = strings.ReplaceAll(s, "ˈ", `\ˈ`)
-	// s = strings.ReplaceAll(s, "`", `\``)
-	// s = strings.ReplaceAll(s, ",", "\\,")
-	// s = strings.ReplaceAll(s, "\\", "\\\\")
 	return s
 }

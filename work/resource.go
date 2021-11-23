@@ -56,7 +56,11 @@ func writeToDatabase(p *model.Pool, parentId int, title string) int {
 }
 
 // 从数据库获取书本，按照从简单到复杂，写入单词与释义。
-func WordSupplement(p *model.Pool, filePath string) {
+func WordSupplement(p *model.Pool, method int) {
+	filePath := "csv"
+	if method > 0 {
+		filePath = "txt"
+	}
 	re, err := p.FetchBook(nil)
 	if err != nil {
 		log.Fatal(err, re)
@@ -72,12 +76,22 @@ func WordSupplement(p *model.Pool, filePath string) {
 		file := strings.TrimSpace(v["title"])
 		f := fmt.Sprintf(`%s/%s`, filePath, strings.Split(file, ".")[0])
 		print(i, ",")
-		infoToDatabase(p, f)
-		// titleToDatabase(p, f)
+		switch method {
+		case 0:
+			infoToDatabase(p, f)
+		case 1:
+			titleToDatabase(p, f)
+		default:
+			wordLinkBook(p, v["id"], f)
+		}
 	}
 }
 
-func InfoSupplement(p *model.Pool, filePath string) {
+func DirSupplement(p *model.Pool, isTitle bool) {
+	filePath := "csv"
+	if isTitle {
+		filePath = "txt"
+	}
 	files, err := ioutil.ReadDir(filePath)
 	if err != nil {
 		println("ioutil.ReadDir", filePath)
@@ -90,15 +104,17 @@ func InfoSupplement(p *model.Pool, filePath string) {
 		}
 		f := fmt.Sprintf(`%s/%s`, filePath, strings.Split(name, ".")[0])
 		print(i, ",")
-		infoToDatabase(p, f)
+		if isTitle {
+			titleToDatabase(p, f)
+		} else {
+			infoToDatabase(p, f)
+		}
 	}
 }
 
 func titleToDatabase(p *model.Pool, fileName string) {
 	file, err := os.Open(fileName + ".txt")
 	if err != nil {
-		println("")
-		println(err)
 		return
 	}
 	defer file.Close()
@@ -106,9 +122,8 @@ func titleToDatabase(p *model.Pool, fileName string) {
 	data := make([]map[string]string, 0)
 	r := bufio.NewScanner(file)
 	for r.Scan() {
-		lineText := r.Text()
-		line := strings.TrimSpace(lineText)
-		if len(line) == 0 || lineText[0] == '#' {
+		line := helper.Translate(r.Text())
+		if len(line) == 0 || strings.Index(line, "#") > -1 {
 			continue
 		}
 		data = append(data, map[string]string{"title": line, "info": ""})
@@ -124,8 +139,6 @@ func titleToDatabase(p *model.Pool, fileName string) {
 func infoToDatabase(p *model.Pool, fileName string) {
 	file, err := os.Open(fileName + ".csv")
 	if err != nil {
-		println("")
-		println(err)
 		return
 	}
 	defer file.Close()
@@ -145,7 +158,7 @@ func infoToDatabase(p *model.Pool, fileName string) {
 		if info == "无" {
 			continue
 		}
-		println("*", title, ":", info)
+		// println("*", title, ":", info)
 		data = append(data, map[string]string{"title": title, "info": info})
 	}
 	_, err = p.InsertOrUpdate("temp", data, []string{"title", "info"}, []string{"info"})
@@ -177,9 +190,39 @@ func wordToTemp(p *model.Pool, index string) {
 	if !ok || len(r) == 0 {
 		log.Fatal(result, "result.([]map[string]string)")
 	}
-	re, err := p.InsertOrUpdate("temp", r, []string{"title", "syllable", "uk", "us"}, []string{"syllable", "uk", "us"})
+	re, err := p.InsertOrUpdate("temp", r, []string{"title", "info", "syllable", "uk", "us"}, []string{"info", "syllable", "uk", "us"})
 	if err != nil {
 		log.Fatal(err, re)
 	}
 	log.Println(re)
+}
+
+func wordLinkBook(p *model.Pool, bookId, fileName string) {
+	file, err := os.Open(fileName + ".txt")
+	if err != nil {
+		return
+	}
+	defer file.Close()
+
+	id, err := strconv.Atoi(bookId)
+	if err != nil {
+		return
+	}
+
+	divide := 62 // 2的63次方超出Mysql BIGINT UNSIGNED的最大值。
+	column := fmt.Sprintf(`book%v`, id/divide)
+	var value uint64 = 1 << (id % divide)
+	v := strconv.FormatUint(value, 10)
+	r := bufio.NewScanner(file)
+	for r.Scan() {
+		line := helper.Translate(r.Text())
+		if len(line) == 0 || strings.Index(line, "#") > -1 {
+			continue
+		}
+		if _, err := p.UpdateBookLinkWord(line, column, v); err != nil {
+			log.Fatal(err)
+		}
+	}
+	os.Remove(fileName + ".txt")
+	// log.Println(re)
 }

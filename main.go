@@ -20,9 +20,8 @@ func format() {
 		log.Fatal(err)
 	}
 	// work.BookClassification(p, "book")
-	// work.WordSupplement(p, "csv")
-	// work.WordSupplement(p, "txt")
-	work.InfoSupplement(p, "csv")
+	work.WordSupplement(p, 2)
+	// work.DirSupplement(p, false)
 	// work.SyllableToDatabase(p)
 }
 
