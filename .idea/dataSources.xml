@@ -8,11 +8,11 @@
       <jdbc-url>jdbc:mysql://localhost:3306/words</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
-    <data-source source="LOCAL" name="sqlite.db" uuid="12805bcb-0905-4c3d-b38e-1c1970c44bc7">
+    <data-source source="LOCAL" name="sqlite.db" uuid="17816e8e-1108-4e60-a2c0-dc52240ecac3">
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
-      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/csv/sqlite.db</jdbc-url>
+      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/sql/sqlite.db</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
   </component>
