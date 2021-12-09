@@ -81,6 +81,8 @@ func WordSupplement(p *model.Pool, method int) {
 			infoToDatabase(p, f)
 		case 1:
 			titleToDatabase(p, f)
+		case 2:
+			countOfBook(p, v["id"], f)
 		default:
 			wordLinkBook(p, v["id"], f)
 		}
@@ -225,4 +227,24 @@ func wordLinkBook(p *model.Pool, bookId, fileName string) {
 	}
 	os.Remove(fileName + ".txt")
 	// log.Println(re)
+}
+
+func countOfBook(p *model.Pool, bookId, fileName string) {
+	file, err := os.Open(fileName + ".txt")
+	if err != nil {
+		return
+	}
+	defer file.Close()
+
+	r := bufio.NewScanner(file)
+	i := 0
+	for r.Scan() {
+		line := helper.Translate(r.Text())
+		if len(line) == 0 || strings.Index(line, "#") > -1 {
+			continue
+		}
+		i++
+	}
+	p.EditBook(map[string]string{"id": bookId, "info": strconv.Itoa(i)})
+	os.Remove(fileName + ".txt")
 }
