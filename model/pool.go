@@ -33,10 +33,11 @@ func Routing(handle string, data map[string]string) []byte {
 	defer p.db.Close()
 
 	router := map[string]Router{
-		"fetchBook": p.FetchBook,
-		"fetchWord": p.FetchWord,
-		"editBook":  p.EditBook,
-		"editWord":  p.EditWord,
+		"fetchBook":  p.FetchBook,
+		"fetchWord":  p.FetchWord,
+		"editBook":   p.EditBook,
+		"editWord":   p.EditWord,
+		"noPhonetic": p.NoPhonetic,
 	}
 	f, ok := router[handle]
 	if !ok {
@@ -64,6 +65,11 @@ func (p *Pool) EditBook(data map[string]string) (interface{}, error) {
 
 func (p *Pool) EditWord(data map[string]string) (interface{}, error) {
 	return p.edit("word", data)
+}
+
+func (p *Pool) NoPhonetic(data map[string]string) (interface{}, error) {
+	query := "select id, title from word where uk is null and title not like '% %' and title not like '% %'"
+	return p.query(query)
 }
 
 func (p *Pool) UpdateBookLinkWord(title, key, value string) (sql.Result, error) {
@@ -165,10 +171,11 @@ func (p *Pool) edit(table string, data map[string]string) (sql.Result, error) {
 		}
 		settings = append(settings, fmt.Sprintf("`%s`='%s'", k, v))
 	}
-	query := fmt.Sprintf(`UPDATE book SET %s WHERE id = %s`, strings.Join(settings, ", "), id)
+	query := fmt.Sprintf(`UPDATE %s SET %s WHERE id = %s`, table, strings.Join(settings, ", "), id)
 	if id == "0" {
-		query = fmt.Sprintf(`INSERT INTO book (%s) VALUES (%s)`, strings.Join(columns, ", "), strings.Join(values, ", "))
+		query = fmt.Sprintf(`INSERT INTO %s (%s) VALUES (%s)`, table, strings.Join(columns, ", "), strings.Join(values, ", "))
 	}
+	println(query)
 	return p.db.Exec(query)
 }
 

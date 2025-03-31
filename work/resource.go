@@ -248,3 +248,50 @@ func countOfBook(p *model.Pool, bookId, fileName string) {
 	p.EditBook(map[string]string{"id": bookId, "info": strconv.Itoa(i)})
 	os.Remove(fileName + ".txt")
 }
+
+func IntoDatabasesWith70w(p *model.Pool) {
+	file, err := os.Open("sql/ecdict.csv")
+	if err != nil {
+		return
+	}
+	defer file.Close()
+
+	data := make([]map[string]string, 0)
+	r := csv.NewReader(file)
+	i := 0
+	for {
+		row, err := r.Read()
+		if err != nil && err != io.EOF {
+			log.Fatalf("can not read, err is %+v", err)
+		}
+		if err == io.EOF {
+			break
+		}
+		title := helper.Translate(row[0])
+		info := helper.Translate(row[3])
+		if i == 0 {
+			i = 1
+			continue
+		}
+		println("*", title, ":", info)
+		data = append(data, map[string]string{"word": title, "translation": info, "sw": "0"})
+		i++
+		if i%1000 == 0 {
+			println(i)
+			_, err = p.InsertOrUpdate("stardict", data, []string{"word", "translation", "sw"}, []string{"translation", "sw"})
+			if err != nil {
+				log.Fatal("InsertOrUpdate", err)
+			}
+			data = make([]map[string]string, 0)
+		}
+	}
+	println(i)
+	_, err = p.InsertOrUpdate("stardict", data, []string{"word", "translation", "sw"}, []string{"translation"})
+	if err != nil {
+		log.Fatal("InsertOrUpdate", err)
+	}
+}
+
+func infoFromStardictToWord() {
+
+}

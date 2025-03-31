@@ -20,9 +20,12 @@ func format() {
 		log.Fatal(err)
 	}
 	// work.BookClassification(p, "book")
-	work.WordSupplement(p, 2)
+	// work.WordSupplement(p, 2)
 	// work.DirSupplement(p, false)
 	// work.SyllableToDatabase(p)
+	// work.IntoDatabasesWith70w(p)
+	work.AddPhonetic(p)
+	// work.PhoneticFromWeb(p, "1", "anguish")
 }
 
 func service() {
